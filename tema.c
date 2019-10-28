@@ -27,6 +27,7 @@
 
 void print_Image();
 void authUser();
+void quitProgram();
 void readUserInput();
 
 int exitCommand = 0;
@@ -41,7 +42,49 @@ int main()
     do{
         readUserInput();
     }while(exitCommand==0);
+    quitProgram();
     return 0;
+}
+
+void quitProgram(){
+    int pid, nr, p[2];
+    FILE *fin,*fout;
+
+    /* creare pipe intern */
+    if(-1 == pipe(p) )
+    {
+     perror("Eroare la crearea canalului intern!");
+     exit(1);
+    }
+
+    int messageLength;
+    switch(pid = fork()){
+        case -1:{perror("forkul nu a mers");exit(1);}
+        case 0:{
+            char message[100];
+            char responce[200] = "";
+            if ((messageLength = read(p[0], message, 100)) == -1)
+                perror("[copil]Problema la citire din Pipe!");
+            sprintf(responce,"Goodbye %s@%s%s.\n", KRED, message, KNRM);
+            responce[strlen(responce)] = '\0';
+
+            if ((messageLength = write(p[1], responce, strlen(responce)+1)) == -1)
+                    perror("[copil]Problema la scriere in Pipe!");
+        }
+        default:{
+            char message[100];
+
+            if ((messageLength = write(p[1], userLoggedName, strlen(userLoggedName))) == -1)
+                    perror("[parinte]Problema la scriere in Pipe!");
+
+            usleep(200);
+            if ((messageLength = read(p[0], message, 100)) == -1)
+                perror("[copil]Problema la citire din Pipe!");
+            
+            printf("%s\n",message);
+            
+        }
+    }
 }
 
 char *split(char *str, const char *delim)
@@ -90,7 +133,7 @@ static void list_dir (const char * dir_name, char * contructed_string, const cha
 
             tail = split(tempColor, file_name);
 
-            sprintf(coloredName,"%s%s%s%s%s",tempColor,KGRN,file_name,KWHT,tail);
+            sprintf(coloredName,"%s%s%s%s%s",tempColor,KGRN,file_name,KNRM,tail);
 
             strcat(name_and_dir,dir_name);
             strcat(name_and_dir,"/");
@@ -361,7 +404,9 @@ void readUserInput(){
                                     strcat(responce, "The teddy bear didn't find anything. Try again");
                                 }
                             }
-                            else{
+                            else if(strncmp(message2,"quit",4) == 0){
+                                strcat(responce, "quit");
+                            }else{
                                 if (write(sockp[0], "OK\0" , 1024) < 0) perror("Failed to send to child..Abord1");
                                 exit(1);
                             }
@@ -377,7 +422,7 @@ void readUserInput(){
             }
             default:{
                 //close(sockp[0]);
-                printf("[%s~%s%s] ", KRED, userLoggedName, KWHT);
+                printf("[%s~%s%s] ", KRED, userLoggedName, KNRM);
                 fflush(stdout);
                 fgets(message, sizeof(message), stdin);
                 printf("\n");
@@ -389,9 +434,11 @@ void readUserInput(){
                 char readbuffer[1024];
                 if (read(sockp[1], readbuffer, 1024) < 0) perror("[parinte]Err...read");
                // printf("%s%d\n", readbuffer, strlen(readbuffer));
-                if(strncmp(readbuffer, "OK",strlen(readbuffer)-1)==0) {exitCommand = 1;};
-                wait(1);
-                printf("%s\n", readbuffer);
+                if(strncmp(readbuffer, "quit",strlen(readbuffer)-1)==0) {exitCommand = 1; wait(1);}
+                else{
+                    wait(1);
+                    printf("%s\n", readbuffer);
+                }
                 //message[0] = '\0';
             }            
         }
