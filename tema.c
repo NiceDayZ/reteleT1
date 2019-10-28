@@ -23,7 +23,7 @@
 #define KWHT  "\x1B[37m"
 
 #define MAX_LEN 128
-#define COMMAND_NOTFOUND "Un(bear)able command. Type help and a little bear will show you the command list\0"
+#define COMMAND_NOTFOUND "80Un(bear)able command. Type help and a little bear will show you the command list\0"
 
 void print_Image();
 void authUser();
@@ -77,7 +77,7 @@ void quitProgram(){
             if ((messageLength = write(p[1], userLoggedName, strlen(userLoggedName))) == -1)
                     perror("[parinte]Problema la scriere in Pipe!");
 
-            usleep(200);
+            usleep(150);
             if ((messageLength = read(p[0], message, 100)) == -1)
                 perror("[copil]Problema la citire din Pipe!");
             
@@ -149,9 +149,13 @@ static void list_dir (const char * dir_name, char * contructed_string, const cha
             }else{
                 strcat(name_formatter,"\t\t");
             }
-            strcat(name_formatter, strstr(dir_name, "/tema_1"));
+            strcat(name_formatter, strstr(dir_name, userLoggedName));
             
-            strcat(name_formatter, "\t\t");
+            if(strlen(dir_name)>=8){
+                strcat(name_formatter,"\t");
+            }else{
+                strcat(name_formatter,"\t\t");
+            }
 
 	        strcat(contructed_string, name_formatter);
             //printf(name_and_dir);
@@ -366,6 +370,8 @@ void readUserInput(){
                                 //myfind [file]
                                 char cwd[PATH_MAX];
                                 getcwd(cwd, sizeof(cwd));
+                                strcat(cwd, "/");
+                                strcat(cwd, userLoggedName);
                                 char temporary[1024] = "";
                                 char name[100] = "";
                                 strcat (name, message2+7);
@@ -387,6 +393,8 @@ void readUserInput(){
                                 //mystat [file]
                                 char cwd[PATH_MAX];
                                 getcwd(cwd, sizeof(cwd));
+                                strcat(cwd, "/");
+                                strcat(cwd, userLoggedName);
                                 char temporary[1024] = "";
                                 char name[100] = "";
                                 strcat (name, message2+7);
@@ -407,11 +415,14 @@ void readUserInput(){
                             else if(strncmp(message2,"quit",4) == 0){
                                 strcat(responce, "quit");
                             }else{
-                                if (write(sockp[0], "OK\0" , 1024) < 0) perror("Failed to send to child..Abord1");
+                                if (write(sockp[0], "2OK\0" , 1024) < 0) perror("Failed to send to child..Abord1");
                                 exit(1);
                             }
+                                char responceWithLength[1024];
                                 responce[strlen(responce)] = '\0';
-                                if (write(sockp[0], responce , 1024) < 0) perror("Failed to send to child..Abord2");
+                                int responceLength = strlen(responce);
+                                sprintf(responceWithLength, "%d%s", responceLength, responce);
+                                if (write(sockp[0], responceWithLength , 1024) < 0) perror("Failed to send to child..Abord2");
                                  exit(1);
 
                         }
@@ -429,15 +440,31 @@ void readUserInput(){
                 //printf("%s%d\n", message,strlen(message));
                 message[strlen(message)] = '\0';
 
+                //send
                 if (write(sockp[1], message, 1024) < 0) perror("Failed to send to child..Abord");
                 
                 char readbuffer[1024];
                 if (read(sockp[1], readbuffer, 1024) < 0) perror("[parinte]Err...read");
                // printf("%s%d\n", readbuffer, strlen(readbuffer));
-                if(strncmp(readbuffer, "quit",strlen(readbuffer)-1)==0) {exitCommand = 1; wait(1);}
+                if(strncmp(readbuffer, "4quit",strlen(readbuffer)-1)==0) {exitCommand = 1; wait(1);}
                 else{
                     wait(1);
-                    printf("%s\n", readbuffer);
+                    int expectedNumberOfBytes = atoi(readbuffer);
+                    char stringValOfExpectedNumberOfBytes[20];
+                    sprintf(stringValOfExpectedNumberOfBytes, "%d", expectedNumberOfBytes);
+
+                    if(atoi(readbuffer) != strlen(readbuffer + strlen(stringValOfExpectedNumberOfBytes))){
+                        if(atoi(readbuffer) >= 1020){
+                            printf("The search result returned too many results. Please be more specific.\n");
+                        }
+                        else
+                        {
+                            printf("Erorr when receive messege, the received data might be corrupted. Expected %d bytes but received %d. Please try again.\n", atoi(readbuffer), strlen(readbuffer + strlen(stringValOfExpectedNumberOfBytes)));
+                        }
+                        
+                    }else{
+                        printf("%s\n", readbuffer+strlen(stringValOfExpectedNumberOfBytes));
+                    }
                 }
                 //message[0] = '\0';
             }            
@@ -479,7 +506,7 @@ void authUser(){
                     exit(1);
 
                 while ((readB = getline(&line, &len, fp)) != -1) {
-                     if((compare = strncmp(message, line, strlen(message)-1)) == 0){
+                     if((compare = strcmp(message, line)) == 0){
                          if ((messageLength = write(fifo2Descriptor, &compare, sizeof(int))) == -1)
                             perror("Problema la scriere in FIFO!");
                         exit(1);
@@ -496,6 +523,7 @@ void authUser(){
             default:{//parinte
                 fifo1Descriptor = open("FIFO1", O_WRONLY);
                 fifo2Descriptor = open("FIFO2", O_RDONLY);
+                printf("login : ");
                 fgets(message, sizeof(message), stdin);
                 if ((messageLength = write(fifo1Descriptor, message, strlen(message))) == -1)
                     perror("Problema la scriere in FIFO!");

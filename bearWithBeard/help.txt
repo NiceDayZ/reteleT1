@@ -1,0 +1,4 @@
+- help - show a list of all commands that can be used in this application
+- myfind [file] - a command that allows finding a file and displaying information associated with that file;
+- mystat [file] - a command that allows you to view the attributes of a file
+- quit - exit the application
