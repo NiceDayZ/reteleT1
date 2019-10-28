@@ -1,0 +1,4 @@
+help
+myfind
+mystat
+quit
