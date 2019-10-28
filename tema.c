@@ -210,15 +210,6 @@ void stat_dir(const char * dir_name, char * contructed_string, const char * file
             strcat(name_and_dir,"/");
             strcat(name_and_dir,file_name);
 
-            strcat(name_formatter,file_name);
-            if(strlen(file_name)>=8){
-                strcat(name_formatter,"\t");
-            }else{
-                strcat(name_formatter,"\t\t");
-            }
-            strcat(name_formatter, strstr(dir_name, "/tema_1"));
-            strcat(name_formatter, "\t\t");
-
 	        
             //printf(name_and_dir);
             //printf("%s\n",name_and_dir);
@@ -362,9 +353,9 @@ void readUserInput(){
 
                                 if (strlen(temporary) > 5){
                                     char formatter[1024] = "";
-                                    sprintf(formatter,"%s\t%s\t%s\t%s\t%s\t\t%s\t\t\t%s\n","File Name", "Directory","File type", "File Perm","Size", "Last Modified", "Last Accessed");
+                                    sprintf(formatter,"%s\t%s\t%s\t\t%s\t\t\t%s\n","File type", "File Perm","Size", "Last Modified", "Last Accessed");
                                     strcat(responce, formatter);
-                                    strcat(responce, "________________________________________________________________________________________________________________________________________\n");
+                                    strcat(responce, "______________________________________________________________________________________________________________\n");
                                     strcat(responce, temporary);
                                 }else{
                                     strcat(responce, "The teddy bear didn't find anything. Try again");
