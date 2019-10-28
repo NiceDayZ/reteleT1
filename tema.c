@@ -332,9 +332,9 @@ void readUserInput(){
 
                                 if (strlen(temporary) > 5){
                                     char formatter[1024] = "";
-                                    sprintf(formatter,"%s\t%s\t%s\t%s\t%s\t\t%s\t\t\t%s\n","File Name", "Directory","File type", "File Perm","Size", "Last Modified", "Last Accessed");
+                                    sprintf(formatter,"\e[1m%s\t%s\t%s\t%s\t%s\t\t%s\t\t\t%s\n\e[0m","File Name", "Directory","File type", "File Perm","Size", "Last Modified", "Last Accessed");
                                     strcat(responce, formatter);
-                                    strcat(responce, "________________________________________________________________________________________________________________________________________\n");
+                                    strcat(responce, "\e[1m________________________________________________________________________________________________________________________________________\e[0m\n");
                                     strcat(responce, temporary);
                                 }else{
                                     strcat(responce, "The teddy bear didn't find anything. Try again");
@@ -353,9 +353,9 @@ void readUserInput(){
 
                                 if (strlen(temporary) > 5){
                                     char formatter[1024] = "";
-                                    sprintf(formatter,"%s\t%s\t%s\t\t%s\t\t\t%s\n","File type", "File Perm","Size", "Last Modified", "Last Accessed");
+                                    sprintf(formatter,"\e[1m%s\t%s\t%s\t\t%s\t\t\t%s\n\e[0m","File type", "File Perm","Size", "Last Modified", "Last Accessed");
                                     strcat(responce, formatter);
-                                    strcat(responce, "______________________________________________________________________________________________________________\n");
+                                    strcat(responce, "\e[1m______________________________________________________________________________________________________________\e[0m\n");
                                     strcat(responce, temporary);
                                 }else{
                                     strcat(responce, "The teddy bear didn't find anything. Try again");
